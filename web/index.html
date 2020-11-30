@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="stylesheets/base.css">
+  <script src="https://d3js.org/d3.v5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+  <script src="js/app.js" defer></script>
+  <title>ssdeepviz</title>
+</head>
+<body>
+  <h1>ssdeepviz - read the paper <a href="/Kornblum_Identifying_almost_identical_files_using_context_triggered_piecewise_hashing.pdf" target="_blank">paper</a> first</h1>
+  <form class="form-inline">
+    <div id="input_div">
+      <label for="input">Input Text</label>
+      <textarea id="input" name="input_text">Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair</textarea>
+    </div>
+    <div>
+      <label for="sig">ssdeep sig</label>
+      <output id="sig"></output>
+    </div>
+    <div class="button_div">
+      <button id="button1" type="button" onclick="init()">Initialize Input</button>
+      <button id="button2" type="button" onclick="stepHash()">Step the Algorithm</button>
+    </div>
+  </form>
+  <svg id="svgDoc" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
+    <!-- https://css-tricks.com/scale-svg -->
+  </svg>
+</body>
+</html>
