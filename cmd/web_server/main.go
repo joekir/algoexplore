@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	ctph "github.com/joekir/ssdeepviz/src/ctph"
+	ctph "github.com/joekir/algoexplore/internal/algos/ctph"
 )
 
 const (

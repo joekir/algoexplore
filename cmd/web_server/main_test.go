@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	ctph "github.com/joekir/ssdeepviz/src/ctph"
+	ctph "github.com/joekir/algoexplore/internal/algos/ctph"
 )
 
 func TestNewHash_withValidLengthField_ReturnsSerializedFHStruct(t *testing.T) {
