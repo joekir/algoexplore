@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/gob"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -13,49 +14,75 @@ import (
 )
 
 const (
-	FUZZY_HASH_OBJ = "fuzzyHash"
-	CTPH_COOKIE    = "ctph"
+	algoStateGob               = "ALGO_GOB"
+	sessionCookieName          = "SESSION"
+	portEnvVarName             = "PORT"
+	cookieSessionKeyEnvVarName = "COOKIE_SESSION_KEY"
 )
 
-var LISTENING_PORT = os.Getenv("PORT")
-var cookieStore *sessions.CookieStore
+var (
+	listeningPort  = os.Getenv(portEnvVarName)
+	availableAlgos []string
+	cookieStore    *sessions.CookieStore
+)
 
 func init() {
 	// Server side storage
-	cookieStore = sessions.NewCookieStore([]byte(os.Getenv("COOKIE_SESSION_KEY")))
-	gob.RegisterName(FUZZY_HASH_OBJ, &ctph.FuzzyHash{})
+	cookieStore = sessions.NewCookieStore([]byte(os.Getenv(cookieSessionKeyEnvVarName)))
+	gob.RegisterName(algoStateGob, &ctph.FuzzyHash{})
 	gob.Register(&ctph.RollingHash{})
-	if len(LISTENING_PORT) < 1 {
-		LISTENING_PORT = "8080"
+	if len(listeningPort) < 1 {
+		listeningPort = "8080"
 	}
+
+	algos, err := ioutil.ReadDir("../../internal/algos/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, algo := range algos {
+		availableAlgos = append(availableAlgos, algo.Name())
+	}
+	// log.Printf("availableAlgos: %#v\n", availableAlgos)
 }
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/NewHash", NewHash).Methods("POST")
-	router.HandleFunc("/StepHash", StepHash).Methods("POST")
+	router.HandleFunc("/{algo}/init", Init).Methods("POST")
+	router.HandleFunc("/{algo}/step", StepAlgo).Methods("POST")
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("../../web/")))
 
-	log.Printf("Listening on %s\n", LISTENING_PORT)
-	log.Fatal(http.ListenAndServe(":"+LISTENING_PORT, router))
+	log.Printf("Listening on %s\n", listeningPort)
+	log.Fatal(http.ListenAndServe(":"+listeningPort, router))
 }
 
 type hashReq struct {
 	DataLength int `json:"data_length"`
 }
 
-func NewHash(w http.ResponseWriter, r *http.Request) {
+func validateAlgo(vars map[string]string) string {
+	algo := vars["algo"]
+	for _, a := range availableAlgos {
+		if a == algo {
+			return a
+		}
+	}
+
+	log.Fatal("valid algorithm not found")
+	return ""
+}
+
+func Init(w http.ResponseWriter, r *http.Request) {
+	algo := validateAlgo(mux.Vars(r))
 	decoder := json.NewDecoder(r.Body)
 
 	var h hashReq
 	err := decoder.Decode(&h)
-
-	log.Printf("NewHash request received: %#v\n", h)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("Init (algo=%s) request received: %#v\n", algo, h)
 
 	if h.DataLength <= 0 {
 		http.Error(w, "Invalid 'data_length'", http.StatusUnprocessableEntity)
@@ -63,7 +90,7 @@ func NewHash(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// A session is always returned
-	session, _ := cookieStore.Get(r, CTPH_COOKIE)
+	session, _ := cookieStore.Get(r, sessionCookieName)
 
 	if !session.IsNew {
 		log.Println("Deleting old cookie")
@@ -73,7 +100,7 @@ func NewHash(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		session, err = cookieStore.New(r, CTPH_COOKIE)
+		session, err = cookieStore.New(r, sessionCookieName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -81,7 +108,7 @@ func NewHash(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fh := ctph.NewFuzzyHash(h.DataLength)
-	session.Values[FUZZY_HASH_OBJ] = fh
+	session.Values[algoStateGob] = fh
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -97,22 +124,23 @@ type stepReq struct {
 	Data byte `json:"byte"`
 }
 
-func StepHash(w http.ResponseWriter, r *http.Request) {
-	session, err := cookieStore.Get(r, CTPH_COOKIE)
+func StepAlgo(w http.ResponseWriter, r *http.Request) {
+	algo := validateAlgo(mux.Vars(r))
+	session, err := cookieStore.Get(r, sessionCookieName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// This should be acting on a server-side struct persisted with gob
-	// Hence a session is needed from /NewHash call
+	// Hence a session is needed from /Init call
 	if session.IsNew {
 		http.Error(w, "no session detected", http.StatusPreconditionRequired)
 		return
 	}
 
-	fh_cookie := session.Values[FUZZY_HASH_OBJ]
-	fh, ok := fh_cookie.(*ctph.FuzzyHash)
+	fhCookie := session.Values[algoStateGob]
+	fh, ok := fhCookie.(*ctph.FuzzyHash)
 	if !ok {
 		http.Error(w, "Unable to retrieve FuzzyHash from session obj",
 			http.StatusInternalServerError)
@@ -136,10 +164,10 @@ func StepHash(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("StepHash request received: %#v\n", s)
+	log.Printf("StepAlgo (algo=%s) request received: %#v\n", algo, s)
 
 	fh.Step(s.Data)
-	session.Values[FUZZY_HASH_OBJ] = fh
+	session.Values[algoStateGob] = fh
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

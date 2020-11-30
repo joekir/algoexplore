@@ -7,20 +7,21 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
 	ctph "github.com/joekir/algoexplore/internal/algos/ctph"
 )
 
-func TestNewHash_withValidLengthField_ReturnsSerializedFHStruct(t *testing.T) {
+func TestInit_withValidLengthField_ReturnsSerializedFHStruct(t *testing.T) {
 	var jsonStr = []byte(`{"data_length": 15}`)
-	req, err := http.NewRequest("POST", "/NewHash", bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", "/ctph/init", bytes.NewBuffer(jsonStr))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(NewHash)
-
-	handler.ServeHTTP(rr, req)
+	router := mux.NewRouter()
+	router.HandleFunc("/{algo}/init", Init)
+	router.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusCreated {
 		t.Errorf("handler returned wrong status code: got %v want %v\n",
@@ -34,17 +35,17 @@ func TestNewHash_withValidLengthField_ReturnsSerializedFHStruct(t *testing.T) {
 	t.Logf("%#v\n", rr.Body.String())
 }
 
-func TestStepHash_noSession_Returns500(t *testing.T) {
+func TestStepAlgo_noSession_Returns500(t *testing.T) {
 	var jsonStr = []byte(`{"byte": 103}`)
-	req, err := http.NewRequest("POST", "/StepHash", bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", "/ctph/step", bytes.NewBuffer(jsonStr))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(StepHash)
-
-	handler.ServeHTTP(rr, req)
+	router := mux.NewRouter()
+	router.HandleFunc("/{algo}/step", StepAlgo)
+	router.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusPreconditionRequired {
 		t.Errorf("handler returned wrong status code: got %v want %v\n",
@@ -52,16 +53,17 @@ func TestStepHash_noSession_Returns500(t *testing.T) {
 	}
 }
 
-func TestStepHash_withSession_StepsItByOne(t *testing.T) {
+func TestStepAlgo_withSession_StepsItByOne(t *testing.T) {
 	var jsonStr = []byte(`{"data_length": 10}`)
-	req, err := http.NewRequest("POST", "/NewHash", bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", "/ctph/init", bytes.NewBuffer(jsonStr))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(NewHash)
-	handler.ServeHTTP(rr, req)
+	router := mux.NewRouter() // need this to text mux Vars
+	router.HandleFunc("/{algo}/init", Init)
+	router.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusCreated {
 		t.Errorf("handler returned wrong status code: got %v want %v\n",
@@ -71,7 +73,7 @@ func TestStepHash_withSession_StepsItByOne(t *testing.T) {
 	cookies := rr.Result().Cookies()
 	var ctphCookie *http.Cookie
 	for i := range cookies {
-		if cookies[i].Name == CTPH_COOKIE {
+		if cookies[i].Name == sessionCookieName {
 			ctphCookie = cookies[i]
 		}
 	}
@@ -81,15 +83,18 @@ func TestStepHash_withSession_StepsItByOne(t *testing.T) {
 	}
 
 	jsonStr = []byte(`{"byte": 103}`)
-	req, err = http.NewRequest("POST", "/StepHash", bytes.NewBuffer(jsonStr))
+	req, err = http.NewRequest("POST", "/ctph/step", bytes.NewBuffer(jsonStr))
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	// These need to be re initialized to avoid
+	// polution from first part of this test
 	rr = httptest.NewRecorder()
+	router = mux.NewRouter()
+	router.HandleFunc("/{algo}/step", StepAlgo)
 	req.AddCookie(ctphCookie)
-	handler = http.HandlerFunc(StepHash)
-	handler.ServeHTTP(rr, req)
+	router.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v\n",
@@ -109,5 +114,4 @@ func TestStepHash_withSession_StepsItByOne(t *testing.T) {
 	if fh.Rh.Window[0] != 103 {
 		t.Fatalf("expected 103, got %d", fh.Rh.Window[0])
 	}
-
 }

@@ -157,7 +157,7 @@ let newHash = function(done){
   inputBytes = strToByteArr(inputText);
 
   $.ajax ({
-        url: "/NewHash",
+        url: "/ctph/init",
         type: "POST",
         data: JSON.stringify({"data_length":inputBytes.length}),
         dataType: "json",
@@ -200,7 +200,7 @@ let stepHash = function(){
   document.getElementById("button2").disabled = true;
 
   $.ajax ({
-        url: "/StepHash",
+        url: "/ctph/step",
         type: "POST",
         data: JSON.stringify({"byte":inputBytes[ctr]}),
         dataType: "json",
