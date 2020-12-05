@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/go,vim,vscode
-# Edit at https://www.toptal.com/developers/gitignore?templates=go,vim,vscode
+# Created by https://www.toptal.com/developers/gitignore/api/go,vim,vscode,osx
+# Edit at https://www.toptal.com/developers/gitignore?templates=go,vim,vscode,osx
 
 ### Go ###
 # Binaries for programs and plugins
@@ -21,6 +21,35 @@
 ### Go Patch ###
 /vendor/
 /Godeps/
+
+### OSX ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
 ### Vim ###
 # Swap
@@ -51,4 +80,4 @@ tags
 !.vscode/extensions.json
 *.code-workspace
 
-# End of https://www.toptal.com/developers/gitignore/api/go,vim,vscode
+# End of https://www.toptal.com/developers/gitignore/api/go,vim,vscode,osx

@@ -1,16 +1,15 @@
 package main
 
 import (
-	"encoding/gob"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	ctph "github.com/joekir/algoexplore/internal/algos/ctph"
+	"github.com/joekir/algoexplore"
+	_ "github.com/joekir/algoexplore/internal/algos/ctph"
 )
 
 const (
@@ -26,30 +25,16 @@ var (
 	cookieStore    *sessions.CookieStore
 )
 
-func init() {
-	// Server side storage
-	cookieStore = sessions.NewCookieStore([]byte(os.Getenv(cookieSessionKeyEnvVarName)))
-	gob.RegisterName(algoStateGob, &ctph.FuzzyHash{})
-	gob.Register(&ctph.RollingHash{})
+func main() {
 	if len(listeningPort) < 1 {
 		listeningPort = "8080"
 	}
 
-	algos, err := ioutil.ReadDir("../../internal/algos/")
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, algo := range algos {
-		availableAlgos = append(availableAlgos, algo.Name())
-	}
-	// log.Printf("availableAlgos: %#v\n", availableAlgos)
-}
-
-func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/{algo}/init", Init).Methods("POST")
 	router.HandleFunc("/{algo}/step", StepAlgo).Methods("POST")
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("../../web/")))
+	cookieStore = sessions.NewCookieStore([]byte(os.Getenv(cookieSessionKeyEnvVarName)))
 
 	log.Printf("Listening on %s\n", listeningPort)
 	log.Fatal(http.ListenAndServe(":"+listeningPort, router))
@@ -59,30 +44,27 @@ type hashReq struct {
 	DataLength int `json:"data_length"`
 }
 
-func validateAlgo(vars map[string]string) string {
-	algo := vars["algo"]
-	for _, a := range availableAlgos {
-		if a == algo {
-			return a
-		}
+func validateAlgo(vars map[string]string) *algoexplore.AlgoInfo {
+	algoName := vars["algo"]
+
+	algoInfo, err := algoexplore.GetAlgo(algoName)
+	log.Printf("algoInfo: %#v\n", algoInfo)
+	if err != nil {
+		log.Fatal("valid algorithm not found")
+		return nil
 	}
 
-	log.Fatal("valid algorithm not found")
-	return ""
+	return &algoInfo
 }
 
 func Init(w http.ResponseWriter, r *http.Request) {
-	algo := validateAlgo(mux.Vars(r))
-	decoder := json.NewDecoder(r.Body)
+	algoInfo := validateAlgo(mux.Vars(r))
 
 	var h hashReq
-	err := decoder.Decode(&h)
-	if err != nil {
+	if err := algoexplore.StrictUnmarshalJSON(&(r.Body), &h); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	log.Printf("Init (algo=%s) request received: %#v\n", algo, h)
 
 	if h.DataLength <= 0 {
 		http.Error(w, "Invalid 'data_length'", http.StatusUnprocessableEntity)
@@ -95,11 +77,12 @@ func Init(w http.ResponseWriter, r *http.Request) {
 	if !session.IsNew {
 		log.Println("Deleting old cookie")
 		session.Options.MaxAge = -1
-		session.Save(r, w)
-		if err != nil {
+		if err := session.Save(r, w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		var err error
 		session, err = cookieStore.New(r, sessionCookieName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -107,17 +90,20 @@ func Init(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fh := ctph.NewFuzzyHash(h.DataLength)
-	session.Values[algoStateGob] = fh
-	err = session.Save(r, w)
-	if err != nil {
+	algo := algoInfo.New()
+	algo.Init(algo, h.DataLength)
+	state := algo.SerializeState()
+	log.Printf("state: %#v\n", state)
+
+	session.Values[algoStateGob] = state
+	if err := session.Save(r, w); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(fh)
+	json.NewEncoder(w).Encode(state)
 }
 
 type stepReq struct {
@@ -125,33 +111,23 @@ type stepReq struct {
 }
 
 func StepAlgo(w http.ResponseWriter, r *http.Request) {
-	algo := validateAlgo(mux.Vars(r))
+	algoInfo := validateAlgo(mux.Vars(r))
 	session, err := cookieStore.Get(r, sessionCookieName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// This should be acting on a server-side struct persisted with gob
-	// Hence a session is needed from /Init call
 	if session.IsNew {
 		http.Error(w, "no session detected", http.StatusPreconditionRequired)
 		return
 	}
 
-	fhCookie := session.Values[algoStateGob]
-	fh, ok := fhCookie.(*ctph.FuzzyHash)
-	if !ok {
-		http.Error(w, "Unable to retrieve FuzzyHash from session obj",
-			http.StatusInternalServerError)
-		return
-	}
-
 	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
 
 	var s stepReq
-	err = decoder.Decode(&s)
-	if err != nil {
+	if err := decoder.Decode(&s); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -160,14 +136,16 @@ func StepAlgo(w http.ResponseWriter, r *http.Request) {
 		// You could argue that 0x0 is a legitimate state, however in ascii it is NUL
 		// Hence it's unlikely to be a legit input, however this is a default input if the
 		// Client doesn't have a valid one, so we should return
+		log.Printf("no data provided")
 		http.Error(w, "No data provided, no state to update", http.StatusNoContent)
 		return
 	}
 
-	log.Printf("StepAlgo (algo=%s) request received: %#v\n", algo, s)
+	algo := algoInfo.New()
+	sessionCookie := session.Values[algoStateGob]
+	algo.Step(sessionCookie.(string), s.Data)
 
-	fh.Step(s.Data)
-	session.Values[algoStateGob] = fh
+	session.Values[algoStateGob] = sessionCookie
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -176,5 +154,5 @@ func StepAlgo(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(fh)
+	json.NewEncoder(w).Encode(sessionCookie)
 }

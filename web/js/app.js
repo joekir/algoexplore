@@ -166,7 +166,7 @@ let newHash = function(done){
     console.log(a,b,c);
     console.log("failed");
   }).done(function(data){
-    done(data)
+    done(JSON.parse(data))
   });
 }
 
@@ -209,6 +209,8 @@ let stepHash = function(){
     console.log(a,b,c);
     console.log("failed");
   }).done(function(data){
+    data = JSON.parse(data);
+
     if (null != data) {
       fh = data // GLOBAL
       if (fh.is_trigger1) {

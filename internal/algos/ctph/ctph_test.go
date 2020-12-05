@@ -1,10 +1,11 @@
 package ctph
 
 import (
-	"github.com/google/go-cmp/cmp"
 	"io/ioutil"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestRollingHash(t *testing.T) {
@@ -113,7 +114,7 @@ func TestCompare_WithCrowAndFoxSlightlyTweaked_IsSimilar(t *testing.T) {
 	}
 	newHash := fh.PrintSSDeep()
 
-	result, err := Compare(original, newHash)
+	result, err := compare(original, newHash)
 	if err != nil {
 		t.Fatalf("Failed to compare hashes: %v", err)
 	}
@@ -124,13 +125,13 @@ func TestCompare_WithCrowAndFoxSlightlyTweaked_IsSimilar(t *testing.T) {
 }
 
 func TestCompare_WithInvalidSignatures_ThrowsError(t *testing.T) {
-	_, err := Compare("24O7XC9FZ2LBfaW3hM6tNMjDEuwwHC", "24:O7XC9FZ2LBfaW3h+XdcDljuQJtNMMqF5DjQuwM0OHC:O7S9FZ2LwWEdcM6tNMjDEuwwHC")
+	_, err := compare("24O7XC9FZ2LBfaW3hM6tNMjDEuwwHC", "24:O7XC9FZ2LBfaW3h+XdcDljuQJtNMMqF5DjQuwM0OHC:O7S9FZ2LwWEdcM6tNMjDEuwwHC")
 
 	if err == nil || err.Error() != "invalid pattern in string 1" {
 		t.Fatalf("Compare should have failed with invalid sig pattern")
 	}
 
-	_, err = Compare("24:O7XC9FZ2LBfaW3h+XdcDljuQJtNMMqF5DjQuwM0OHC:O7S9FZ2LwWEdcM6tNMjDEuwwHC", "24O7XC9FZ2LBfaW3hM6tNMjDEuwwHC")
+	_, err = compare("24:O7XC9FZ2LBfaW3h+XdcDljuQJtNMMqF5DjQuwM0OHC:O7S9FZ2LwWEdcM6tNMjDEuwwHC", "24O7XC9FZ2LBfaW3hM6tNMjDEuwwHC")
 
 	if err == nil || err.Error() != "invalid pattern in string 2" {
 		t.Fatalf("Compare should have failed with invalid sig pattern")
@@ -138,7 +139,7 @@ func TestCompare_WithInvalidSignatures_ThrowsError(t *testing.T) {
 }
 
 func TestCompare_WithIncompatibleSignatures_ThrowsError(t *testing.T) {
-	_, err := Compare("24:0:0", "12:O:O")
+	_, err := compare("24:0:0", "12:O:O")
 
 	if err == nil || err.Error() != "blocksize mismatch" {
 		t.Fatalf("Compare should throw blocksize mismatch")
