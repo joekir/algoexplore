@@ -1,6 +1,7 @@
 # algoexplore
 
 [![Build Status](https://travis-ci.org/joekir/algoexplore.svg?branch=main)](https://travis-ci.org/joekir/algoexplore)
+[![codecov](https://codecov.io/gh/joekir/algoexplore/branch/main/graph/badge.svg?token=ZOOIRH3QET)](https://codecov.io/gh/joekir/algoexplore)
 
 A web framework for visualizing bit-level algorithms.    
 The intent to help either your understanding or for teaching of algorithms to others

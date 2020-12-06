@@ -6,8 +6,8 @@ go:
   - 1.15.x
 os:
   - linux
+dist: focal
 virt: lxd
-sudo: false
 script:
   - go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
