@@ -52,7 +52,6 @@ func validateAlgo(vars map[string]string) *algoexplore.AlgoInfo {
 	algoName := vars["algo"]
 
 	algoInfo, err := algoexplore.GetAlgo(algoName)
-	log.Printf("algoInfo: %#v\n", algoInfo)
 	if err != nil {
 		log.Fatal("valid algorithm not found")
 		return nil
@@ -117,7 +116,9 @@ func Init(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(state)
+	if err := json.NewEncoder(w).Encode(state); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 type stepReq struct {
@@ -161,7 +162,9 @@ func StepAlgo(w http.ResponseWriter, r *http.Request) {
 	// https://golang.org/doc/effective_go.html#type_switch
 	switch algo := algo.(type) {
 	case *ctph.Ctph:
-		algo.DeserializeState(state)
+		if err := algo.DeserializeState(state); err != nil {
+			log.Fatalf("Failed to deserialize state: %s", err.Error())
+		}
 		algo.Step(s.Data)
 		state = algo.SerializeState()
 	default:
@@ -178,5 +181,7 @@ func StepAlgo(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(state)
+	if err := json.NewEncoder(w).Encode(state); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }

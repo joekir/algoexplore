@@ -88,8 +88,12 @@ func (ctph *Ctph) Step(d byte) {
 	}
 
 	rs := ctph.Rh.hash(d)
-	ctph.Hash1.Write([]byte{d})
-	ctph.Hash2.Write([]byte{d})
+	if _, err := ctph.Hash1.Write([]byte{d}); err != nil {
+		log.Fatal(err)
+	}
+	if _, err := ctph.Hash2.Write([]byte{d}); err != nil {
+		log.Fatal(err)
+	}
 	ctph.IsTrigger1, ctph.IsTrigger2 = false, false
 
 	if mod := rs % ctph.Bs; mod == ctph.Bs-1 {

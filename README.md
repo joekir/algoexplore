@@ -26,5 +26,5 @@ $ COOKIE_SESSION_KEY=0x`openssl rand -hex 8` go run .
 ## Running Tests 
 
 ```
-$ go test ./...
+$ go test -race ./...
 ```
