@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"regexp"
 	"strings"
@@ -18,6 +19,8 @@ func init() {
 	algoexplore.RegisterAlgo(Ctph{})
 }
 
+// Ctph - Context Triggered Piecewise Hashing
+// struct that contains the algorithm's state
 type Ctph struct {
 	Bs         uint32      `json:"block_size"`
 	Hash1      Sum32       `json:"-"`
@@ -32,6 +35,7 @@ type Ctph struct {
 	Sig2       string      `json:"sig2"`
 }
 
+// RollingHash - SubType of CTPH to maintain a rolling-window hash
 type RollingHash struct {
 	X      uint32   `json:"x"`
 	Y      uint32   `json:"y"`
@@ -56,26 +60,19 @@ const (
 	blockSizeMin uint32 = 3
 )
 
-func (ctph Ctph) Init(obj interface{}, InputLen int) {
+func (ctph *Ctph) Init(InputLen int) {
 	if InputLen < 1 {
 		log.Fatal("invalid input length")
 	}
-	p, isCtph := obj.(*Ctph)
-	if !isCtph {
-		log.Fatal("invalid interface provided")
-	}
 
-	p.InputLen = InputLen
-	p.Retry = true
-	p.Bs = calcInitBlockSize(uint32(InputLen))
-	p.reset()
-	ctph = *p
+	ctph.InputLen = InputLen
+	ctph.Retry = true
+	ctph.Bs = calcInitBlockSize(uint32(InputLen))
+	ctph.reset()
 }
 
-func (ctph Ctph) Step(ser string, d byte) {
-	json.Unmarshal([]byte(ser), &ctph)
-
-	ctph.Index++
+func (ctph *Ctph) Step(d byte) {
+	ctph.Index += 1
 	if ctph.Index >= ctph.InputLen {
 		ctph.Sig1 += string(b64Chars[ctph.Hash1.Sum32()&0x3F])
 		ctph.Sig2 += string(b64Chars[ctph.Hash2.Sum32()&0x3F])
@@ -108,7 +105,7 @@ func (ctph Ctph) Step(ser string, d byte) {
 	}
 }
 
-func (ctph Ctph) SerializeState() string {
+func (ctph *Ctph) SerializeState() string {
 	byteArray, err := json.Marshal(ctph)
 	if err != nil {
 		log.Fatal(err)
@@ -116,10 +113,11 @@ func (ctph Ctph) SerializeState() string {
 	return string(byteArray)
 }
 
-func (ctph Ctph) DeserializeState(state string) {
-	if err := json.Unmarshal([]byte(state), &ctph); err != nil {
-		log.Fatal(err)
-	}
+// DeserializeState strictJSON parses to ctph struct
+func (ctph *Ctph) DeserializeState(state string) error {
+	var r io.Reader
+	r = strings.NewReader(state)
+	return algoexplore.StrictUnmarshalJSON(&r, &ctph)
 }
 
 // Implementation based on https://github.com/ssdeep-project/ssdeep/blob/master/fuzzy.c#L383

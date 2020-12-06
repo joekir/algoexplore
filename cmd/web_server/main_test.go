@@ -2,13 +2,13 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
-	ctph "github.com/joekir/algoexplore/internal/algos/ctph"
 )
 
 func TestInit_withValidLengthField_ReturnsSerializedFHStruct(t *testing.T) {
@@ -101,17 +101,12 @@ func TestStepAlgo_withSession_StepsItByOne(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	decoder := json.NewDecoder(rr.Body)
-
-	var fh ctph.FuzzyHash
-	err = decoder.Decode(&fh)
+	jsonStr, err = ioutil.ReadAll(rr.Body)
 	if err != nil {
-		t.Fatal(err)
+		t.Errorf("failed to read response body: %s", err.Error())
 	}
 
-	t.Logf("%#v\n", fh)
-
-	if fh.Rh.Window[0] != 103 {
-		t.Fatalf("expected 103, got %d", fh.Rh.Window[0])
+	if !strings.Contains(string(jsonStr), `\"window\":[103`) {
+		t.Fatalf("expected `window[103,...`, got %s", jsonStr)
 	}
 }

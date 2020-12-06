@@ -13,17 +13,21 @@ var (
 	algosMutex sync.RWMutex
 )
 
-type Algo interface {
-	Algo() AlgoInfo
-	Init(obj interface{}, inputLen int)
-	Step(ser string, d byte)
-	SerializeState() string
-	DeserializeState(state string)
-}
-
 type AlgoInfo struct {
 	Name string
 	New  func() Algo
+}
+
+type Algo interface {
+	Algo() AlgoInfo
+}
+
+// AlgoWorker this allows you to leverage the ptr-receiver to update your algorithm
+type AlgoWorker interface {
+	Init(inputLen int)
+	Step(d byte)
+	SerializeState() string
+	DeserializeState(state string) error
 }
 
 // RegisterAlgo <TODO>
@@ -68,7 +72,7 @@ func Algos() []string {
 	return names
 }
 
-func StrictUnmarshalJSON(data *io.ReadCloser, v interface{}) error {
+func StrictUnmarshalJSON(data *io.Reader, v interface{}) error {
 	dec := json.NewDecoder(*data)
 	dec.DisallowUnknownFields()
 	return dec.Decode(v)

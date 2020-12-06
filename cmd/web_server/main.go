@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -9,11 +10,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/joekir/algoexplore"
-	_ "github.com/joekir/algoexplore/internal/algos/ctph"
+	"github.com/joekir/algoexplore/internal/algos/ctph"
 )
 
 const (
-	algoStateGob               = "ALGO_GOB"
+	algoState                  = "ALGO_STATE"
 	sessionCookieName          = "SESSION"
 	portEnvVarName             = "PORT"
 	cookieSessionKeyEnvVarName = "COOKIE_SESSION_KEY"
@@ -25,6 +26,10 @@ var (
 	cookieStore    *sessions.CookieStore
 )
 
+func init() {
+	cookieStore = sessions.NewCookieStore([]byte(os.Getenv(cookieSessionKeyEnvVarName)))
+}
+
 func main() {
 	if len(listeningPort) < 1 {
 		listeningPort = "8080"
@@ -34,7 +39,6 @@ func main() {
 	router.HandleFunc("/{algo}/init", Init).Methods("POST")
 	router.HandleFunc("/{algo}/step", StepAlgo).Methods("POST")
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("../../web/")))
-	cookieStore = sessions.NewCookieStore([]byte(os.Getenv(cookieSessionKeyEnvVarName)))
 
 	log.Printf("Listening on %s\n", listeningPort)
 	log.Fatal(http.ListenAndServe(":"+listeningPort, router))
@@ -61,7 +65,9 @@ func Init(w http.ResponseWriter, r *http.Request) {
 	algoInfo := validateAlgo(mux.Vars(r))
 
 	var h hashReq
-	if err := algoexplore.StrictUnmarshalJSON(&(r.Body), &h); err != nil {
+	var body io.Reader
+	body = r.Body
+	if err := algoexplore.StrictUnmarshalJSON(&body, &h); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -91,11 +97,19 @@ func Init(w http.ResponseWriter, r *http.Request) {
 	}
 
 	algo := algoInfo.New()
-	algo.Init(algo, h.DataLength)
-	state := algo.SerializeState()
+
+	// https://golang.org/doc/effective_go.html#type_switch
+	var state string
+	switch algo := algo.(type) {
+	case *ctph.Ctph:
+		algo.Init(h.DataLength)
+		state = algo.SerializeState()
+	default:
+		log.Fatal("Unable to concretize algo type")
+	}
 	log.Printf("state: %#v\n", state)
 
-	session.Values[algoStateGob] = state
+	session.Values[algoState] = state
 	if err := session.Save(r, w); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -141,11 +155,21 @@ func StepAlgo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	state := session.Values[algoState].(string)
 	algo := algoInfo.New()
-	sessionCookie := session.Values[algoStateGob]
-	algo.Step(sessionCookie.(string), s.Data)
 
-	session.Values[algoStateGob] = sessionCookie
+	// https://golang.org/doc/effective_go.html#type_switch
+	switch algo := algo.(type) {
+	case *ctph.Ctph:
+		algo.DeserializeState(state)
+		algo.Step(s.Data)
+		state = algo.SerializeState()
+	default:
+		log.Fatal("Unable to concretize algo type")
+	}
+	log.Printf("state: %#v\n", state)
+
+	session.Values[algoState] = state
 	err = session.Save(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -154,5 +178,5 @@ func StepAlgo(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(sessionCookie)
+	json.NewEncoder(w).Encode(state)
 }

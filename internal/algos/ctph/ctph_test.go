@@ -52,16 +52,19 @@ func TestCtphHash_WithMobyDick_MatchesExistingTool(t *testing.T) {
 		t.Fatalf("could not read test file: %v", err)
 	}
 
-	fh := NewFuzzyHash(len(data))
-	for fh.Retry {
+	var ctph *Ctph
+	ctph = new(Ctph)
+	ctph.Init(len(data))
+
+	for ctph.Retry {
 		for _, b := range data {
-			fh.Step(b)
-			if !fh.Retry {
+			ctph.Step(b)
+			if !ctph.Retry {
 				break
 			}
 		}
 	}
-	h := fh.PrintSSDeep()
+	h := ctph.PrintSSDeep()
 
 	if !cmp.Equal(expectedSSDeep, h) {
 		t.Fatalf("Unexpected hash: %s", cmp.Diff(expectedSSDeep, h))
@@ -77,17 +80,18 @@ func TestCtphHash_WithCrowAndFox_MatchesExistingTool(t *testing.T) {
 		t.Fatalf("could not read test file: %v", err)
 	}
 
-	fh := NewFuzzyHash(len(data))
-	for fh.Retry {
+	ctph := new(Ctph)
+	ctph.Init(len(data))
+
+	for ctph.Retry {
 		for _, b := range data {
-			fh.Step(b)
-			if !fh.Retry {
+			ctph.Step(b)
+			if !ctph.Retry {
 				break
 			}
 		}
 	}
-
-	h := fh.PrintSSDeep()
+	h := ctph.PrintSSDeep()
 
 	if !cmp.Equal(expectedSSDeep, h) {
 		t.Fatalf("Unexpected hash: %s", cmp.Diff(expectedSSDeep, h))
@@ -103,18 +107,19 @@ func TestCompare_WithCrowAndFoxSlightlyTweaked_IsSimilar(t *testing.T) {
 	}
 
 	modified := []byte(strings.Replace(string(d), "vous", "tous", 1))
-	fh := NewFuzzyHash(len(modified))
-	for fh.Retry {
+	ctph := new(Ctph)
+	ctph.Init(len(modified))
+	for ctph.Retry {
 		for _, b := range modified {
-			fh.Step(b)
-			if !fh.Retry {
+			ctph.Step(b)
+			if !ctph.Retry {
 				break
 			}
 		}
 	}
-	newHash := fh.PrintSSDeep()
+	newHash := ctph.PrintSSDeep()
 
-	result, err := compare(original, newHash)
+	result, err := compareCtphSignatures(original, newHash)
 	if err != nil {
 		t.Fatalf("Failed to compare hashes: %v", err)
 	}
@@ -125,13 +130,13 @@ func TestCompare_WithCrowAndFoxSlightlyTweaked_IsSimilar(t *testing.T) {
 }
 
 func TestCompare_WithInvalidSignatures_ThrowsError(t *testing.T) {
-	_, err := compare("24O7XC9FZ2LBfaW3hM6tNMjDEuwwHC", "24:O7XC9FZ2LBfaW3h+XdcDljuQJtNMMqF5DjQuwM0OHC:O7S9FZ2LwWEdcM6tNMjDEuwwHC")
+	_, err := compareCtphSignatures("24O7XC9FZ2LBfaW3hM6tNMjDEuwwHC", "24:O7XC9FZ2LBfaW3h+XdcDljuQJtNMMqF5DjQuwM0OHC:O7S9FZ2LwWEdcM6tNMjDEuwwHC")
 
 	if err == nil || err.Error() != "invalid pattern in string 1" {
 		t.Fatalf("Compare should have failed with invalid sig pattern")
 	}
 
-	_, err = compare("24:O7XC9FZ2LBfaW3h+XdcDljuQJtNMMqF5DjQuwM0OHC:O7S9FZ2LwWEdcM6tNMjDEuwwHC", "24O7XC9FZ2LBfaW3hM6tNMjDEuwwHC")
+	_, err = compareCtphSignatures("24:O7XC9FZ2LBfaW3h+XdcDljuQJtNMMqF5DjQuwM0OHC:O7S9FZ2LwWEdcM6tNMjDEuwwHC", "24O7XC9FZ2LBfaW3hM6tNMjDEuwwHC")
 
 	if err == nil || err.Error() != "invalid pattern in string 2" {
 		t.Fatalf("Compare should have failed with invalid sig pattern")
@@ -139,9 +144,27 @@ func TestCompare_WithInvalidSignatures_ThrowsError(t *testing.T) {
 }
 
 func TestCompare_WithIncompatibleSignatures_ThrowsError(t *testing.T) {
-	_, err := compare("24:0:0", "12:O:O")
+	_, err := compareCtphSignatures("24:0:0", "12:O:O")
 
 	if err == nil || err.Error() != "blocksize mismatch" {
 		t.Fatalf("Compare should throw blocksize mismatch")
+	}
+}
+
+func TestDeserializeState_withValidJson_parsestoCtph(t *testing.T) {
+	json := `{"block_size":384,"index":-1,"input_length":12319,"is_trigger1":false,"is_trigger2":false,"rolling_hash":{"x":0,"y":0,"z":0,"c":0,"size":7,"window":[116,0,0,0,0,0,0]},"sig1":"","sig2":""}`
+	ctph := new(Ctph)
+	ctph.DeserializeState(json)
+
+	if ctph.InputLen != 12319 {
+		t.Fatalf("expected 12319, got %d", ctph.InputLen)
+	}
+}
+
+func TestSerializeState_withCtphStruct_serializesToCorrectJSON(t *testing.T) {
+	ctph := new(Ctph)
+	ctph.InputLen = 37331
+	if !strings.Contains(ctph.SerializeState(), "37331") {
+		t.Fatal("expected serialized data to contain 37331 but it did not")
 	}
 }
