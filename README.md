@@ -7,7 +7,7 @@ The intent to help either your understanding or for teaching of algorithms to ot
 
 ## Leveraging the framework
 
-You need to implement an "algo" in Golang that implements the intefaces in Algo.go     
+You need to implement an "algo" in Golang that implements the interfaces in Algo.go     
 See internal/algos/ctph as an example implementation
 
 <TODO frontend intstructions>
