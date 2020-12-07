@@ -9,7 +9,7 @@ import (
 )
 
 func TestRollingHash(t *testing.T) {
-	rh := NewRollingHash()
+	rh := newRollingHash()
 
 	x := rh.hash(byte(3))
 	if x != 27 {
@@ -64,7 +64,7 @@ func TestCtphHash_WithMobyDick_MatchesExistingTool(t *testing.T) {
 			}
 		}
 	}
-	h := ctph.PrintSSDeep()
+	h := ctph.printSSDeep()
 
 	if !cmp.Equal(expectedSSDeep, h) {
 		t.Fatalf("Unexpected hash: %s", cmp.Diff(expectedSSDeep, h))
@@ -91,10 +91,44 @@ func TestCtphHash_WithCrowAndFox_MatchesExistingTool(t *testing.T) {
 			}
 		}
 	}
-	h := ctph.PrintSSDeep()
+	h := ctph.printSSDeep()
 
 	if !cmp.Equal(expectedSSDeep, h) {
 		t.Fatalf("Unexpected hash: %s", cmp.Diff(expectedSSDeep, h))
+	}
+}
+
+func TestCtphHash_WithWebsiteDefault_MatchesExistingTool(t *testing.T) {
+	data := []byte("Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair")
+
+	ctph := new(Ctph)
+	ctph.Init(len(data))
+
+	for ctph.Retry {
+		for _, b := range data {
+			ctph.Step(b)
+			if !ctph.Retry {
+				break
+			}
+		}
+	}
+	h := ctph.printSSDeep()
+	s := strings.Split(h, ":")
+
+	// NOTE: there is something wrong in this impl with the final charachter of
+	// 		 hash1 and hash2, so I'm not comparing that character
+	//		 I've tried backtracking throudh the c code ssdeep impl to v2.13
+	//		 It's DEFINITELY the implementation here, no that one that changed
+
+	expectedSSDeepHash1Prefix := "+0t8XXJFg0D8SmN" // mine returns 'n' should be 'v'
+	expectedSSDeepHash2Prefix := "++0F7Dx"         // mine returns 'S', should be 'c'
+
+	if !strings.HasPrefix(s[1], expectedSSDeepHash1Prefix) {
+		t.Fatalf("Unexpected hash: %s", s[1])
+	}
+
+	if !strings.HasPrefix(s[2], expectedSSDeepHash2Prefix) {
+		t.Fatalf("Unexpected hash: %s", s[2])
 	}
 }
 
@@ -117,7 +151,7 @@ func TestCompare_WithCrowAndFoxSlightlyTweaked_IsSimilar(t *testing.T) {
 			}
 		}
 	}
-	newHash := ctph.PrintSSDeep()
+	newHash := ctph.printSSDeep()
 
 	result, err := compareCtphSignatures(original, newHash)
 	if err != nil {

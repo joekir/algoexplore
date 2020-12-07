@@ -14,7 +14,7 @@ const (
 
 type Sum32 uint32
 
-// Generate a new FNV32 with the custom SSDEEP offset.
+// NewFNV - Generates an FNV32 with the custom SSDEEP offset.
 func NewFNV() *Sum32 {
 	var s Sum32 = offset
 	return &s

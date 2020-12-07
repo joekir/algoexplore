@@ -89,7 +89,7 @@ func TestStepAlgo_withSession_StepsItByOne(t *testing.T) {
 	}
 
 	// These need to be re initialized to avoid
-	// polution from first part of this test
+	// pollution from first part of this test
 	rr = httptest.NewRecorder()
 	router = mux.NewRouter()
 	router.HandleFunc("/{algo}/step", StepAlgo)

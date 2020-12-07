@@ -19,32 +19,7 @@ func init() {
 	algoexplore.RegisterAlgo(Ctph{})
 }
 
-// Ctph - Context Triggered Piecewise Hashing
-// struct that contains the algorithm's state
-type Ctph struct {
-	Bs         uint32      `json:"block_size"`
-	Hash1      Sum32       `json:"-"`
-	Hash2      Sum32       `json:"-"`
-	Index      int         `json:"index"`
-	InputLen   int         `json:"input_length"`
-	IsTrigger1 bool        `json:"is_trigger1"`
-	IsTrigger2 bool        `json:"is_trigger2"`
-	Retry      bool        `json:"-"`
-	Rh         RollingHash `json:"rolling_hash"`
-	Sig1       string      `json:"sig1"`
-	Sig2       string      `json:"sig2"`
-}
-
-// RollingHash - SubType of CTPH to maintain a rolling-window hash
-type RollingHash struct {
-	X      uint32   `json:"x"`
-	Y      uint32   `json:"y"`
-	Z      uint32   `json:"z"`
-	C      uint32   `json:"c"`
-	Size   uint32   `json:"size"`
-	Window []uint32 `json:"window"`
-}
-
+// Algo - see algoexplore.AlgoInfo struct
 func (Ctph) Algo() algoexplore.AlgoInfo {
 	return algoexplore.AlgoInfo{
 		Name: "ctph",
@@ -52,14 +27,7 @@ func (Ctph) Algo() algoexplore.AlgoInfo {
 	}
 }
 
-const (
-	b64Chars     string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	ssLength     uint32 = 64
-	ssSigPattern string = "^\\d+:[0-9a-zA-Z+\\/]+:[0-9a-zA-Z+\\/]+$"
-	windowSize   uint32 = 7
-	blockSizeMin uint32 = 3
-)
-
+// Init - see algoexplore.AlgoWorker interface
 func (ctph *Ctph) Init(InputLen int) {
 	if InputLen < 1 {
 		log.Fatal("invalid input length")
@@ -71,8 +39,9 @@ func (ctph *Ctph) Init(InputLen int) {
 	ctph.reset()
 }
 
+// Step - see algoexplore.AlgoWorker interface
 func (ctph *Ctph) Step(d byte) {
-	ctph.Index += 1
+	ctph.Index++
 	if ctph.Index >= ctph.InputLen {
 		ctph.Sig1 += string(b64Chars[ctph.Hash1.Sum32()&0x3F])
 		ctph.Sig2 += string(b64Chars[ctph.Hash2.Sum32()&0x3F])
@@ -109,6 +78,7 @@ func (ctph *Ctph) Step(d byte) {
 	}
 }
 
+// SerializeState - see algoexplore.AlgoWorker interface
 func (ctph *Ctph) SerializeState() string {
 	byteArray, err := json.Marshal(ctph)
 	if err != nil {
@@ -117,7 +87,8 @@ func (ctph *Ctph) SerializeState() string {
 	return string(byteArray)
 }
 
-// DeserializeState strictJSON parses to ctph struct
+// DeserializeState - see algoexplore.AlgoWorker interface
+//					strictJSON parses to ctph struct
 func (ctph *Ctph) DeserializeState(state string) error {
 	var r io.Reader
 	r = strings.NewReader(state)
@@ -169,18 +140,18 @@ func compareCtphSignatures(s1, s2 string) (int, error) {
 	return firstDiff, nil
 }
 
-func (ctph Ctph) PrintSSDeep() string {
+func (ctph Ctph) printSSDeep() string {
 	return fmt.Sprintf("%d:%s:%s", ctph.Bs, ctph.Sig1, ctph.Sig2)
 }
 
 func (ctph *Ctph) reset() {
 	ctph.Hash1, ctph.Hash2 = *NewFNV(), *NewFNV()
 	ctph.Index = -1
-	ctph.Rh = *NewRollingHash()
+	ctph.Rh = *newRollingHash()
 	ctph.Sig1, ctph.Sig2 = "", ""
 }
 
-func NewRollingHash() *RollingHash {
+func newRollingHash() *RollingHash {
 	return &RollingHash{
 		Size:   windowSize,
 		Window: make([]uint32, windowSize),
@@ -199,4 +170,38 @@ func (rh *RollingHash) hash(d byte) uint32 {
 	rh.Z = rh.Z ^ dint
 
 	return (rh.X + rh.Y + rh.Z)
+}
+
+const (
+	b64Chars     string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+	ssLength     uint32 = 64
+	ssSigPattern string = "^\\d+:[0-9a-zA-Z+\\/]+:[0-9a-zA-Z+\\/]+$"
+	windowSize   uint32 = 7
+	blockSizeMin uint32 = 3
+)
+
+// Ctph - Context Triggered Piecewise Hashing
+// struct that contains the algorithm's state
+type Ctph struct {
+	Bs         uint32      `json:"block_size"`
+	Hash1      Sum32       `json:"hash1"`
+	Hash2      Sum32       `json:"hash2"`
+	Index      int         `json:"index"`
+	InputLen   int         `json:"input_length"`
+	IsTrigger1 bool        `json:"is_trigger1"`
+	IsTrigger2 bool        `json:"is_trigger2"`
+	Retry      bool        `json:"retry"`
+	Rh         RollingHash `json:"rolling_hash"`
+	Sig1       string      `json:"sig1"`
+	Sig2       string      `json:"sig2"`
+}
+
+// RollingHash - SubType of CTPH to maintain a rolling-window hash
+type RollingHash struct {
+	X      uint32   `json:"x"`
+	Y      uint32   `json:"y"`
+	Z      uint32   `json:"z"`
+	C      uint32   `json:"c"`
+	Size   uint32   `json:"size"`
+	Window []uint32 `json:"window"`
 }
