@@ -1,4 +1,4 @@
-name: Run Gosec
+name: GoSec
 
 on:
   push:
