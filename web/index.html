@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" href="stylesheets/base.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css" integrity="sha512-ZRv40llEogRmoWgZwnsqke3HNzJ0kiI0+pcMgiz2bxO6Ew1DVBtWjVn0qjrXdT3+u+pSN36gLgmJiiQ3cQtyzA==" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA==" crossorigin="anonymous" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.min.js" integrity="sha512-wKo55+1oH5DGJ19ScVUHTtcZiqJuSnknSs8CgzzEm1lNftJRDXN/kWpF9Kx+vPam8HBeg53OxS0MYd0+Iz9cjQ==" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.1.2/es5/core.min.js" integrity="sha512-qrSkHv2KkHdkK726WXsklnMzFpDPvWeExhSbzsE/XRPlMi8F9KfHQqhF0M6Q/Rl5JyFU42OD1H8AmgcoZJzhwg==" crossorigin="anonymous" async></script>
@@ -10,23 +12,63 @@
   <title>algoexplore</title>
 </head>
 <body>
-  <h1>ssdeepviz - read the paper <a href="/Kornblum_Identifying_almost_identical_files_using_context_triggered_piecewise_hashing.pdf" target="_blank">paper</a> first</h1>
-  <form class="form-inline">
-    <div id="input_div">
-      <label for="input">Input Text</label>
-      <textarea id="input" name="input_text">Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair</textarea>
+  <section class="hero is-small is-light is-bold">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">Algo Explore</h1>
+        <h2 class="subtitle">ssdeepviz (<a href="/Kornblum_Identifying_almost_identical_files_using_context_triggered_piecewise_hashing.pdf" target="_blank">link</a> to the paper)</h2>
+      </div>
     </div>
-    <div>
-      <label for="sig">ssdeep sig</label>
-      <output id="sig"></output>
+  </section>
+  <section class="section">
+    <div class="container pb-2">
+      <label for="input" class="label">Input Text</label>
+      <div class="field has-addons">
+        <div class="control is-expanded">
+          <input id="input" class="input" value="The quick brown fox jumped over the lazy dog's back" placeholder="type something, then press 'initialize input'...">
+        </div>
+        <div class="control">
+          <a id="button1" class="button is-outlined is-info is-light" type="reset" onclick="init()">
+            <span>Initialize Input</span>
+            <span class="icon is-small">
+              <i class="fas fa-power-off"></i>
+            </span>
+          </a>
+          <a id="button2" class="button is-outlined is-primary is-light" type="submit" onclick="stepHash()">
+            <span>Step the Algorithm</span>
+            <span class="icon is-small">
+              <i class="fas fa-step-forward"></i>
+            </span>
+          </a>
+        </div>
+      </div>
     </div>
-    <div class="button_div">
-      <button id="button1" type="button" onclick="init()">Initialize Input</button>
-      <button id="button2" type="button" onclick="stepHash()">Step the Algorithm</button>
+    <div class="container">
+      <label for="sig" class="label">ssdeep sig</label>
+      <div class="control">
+        <textarea id="sig" class="textarea" placeholder="Disabled textarea" disabled></textarea>
+      </div>
     </div>
-  </form>
-  <svg id="svgDoc" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
-    <!-- https://css-tricks.com/scale-svg -->
-  </svg>
+  </section>
+  <section class="section">
+    <div class="container">
+    <svg id="svgDoc" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
+      <!-- https://css-tricks.com/scale-svg -->
+    </svg>
+    </div>
+  </section>
 </body>
+<footer class="footer">
+  <div class="content has-text-centered">
+    <p>
+      <strong>algoexplore</strong> by <a href="https://josephkirwin.com">Joe Kirwin</a>. The source code is licensed under
+      <a href="https://github.com/joekir/algoexplore/blob/main/LICENSE">MPL2.0</a>.
+    </p>
+    <p>
+      <a href="https://bulma.io">
+        <img src="https://bulma.io/images/made-with-bulma--dark.png" alt="Made with Bulma" width="128" height="24">
+        </a>
+    </p>
+  </div>
+</footer>
 </html>
