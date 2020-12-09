@@ -22,8 +22,7 @@ See internal/algos/ctph as an example implementation
 ## Running
 
 ```
-$ cd cmd/web_server
-$ COOKIE_SESSION_KEY=0x`openssl rand -hex 8` go run .
+$ COOKIE_SESSION_KEY=0x`openssl rand -hex 8` go run cmd/web_server/main.go
 ```
 
 ## Running Tests 

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -38,7 +39,12 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/{algo}/init", Init).Methods("POST")
 	router.HandleFunc("/{algo}/step", StepAlgo).Methods("POST")
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("../../web/")))
+	workingDir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	staticDir := path.Join(workingDir, "/static/")
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir)))
 
 	log.Printf("Listening on %s\n", listeningPort)
 	log.Fatal(http.ListenAndServe(":"+listeningPort, router))
