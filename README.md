@@ -17,7 +17,7 @@ See internal/algos/ctph as an example implementation
 
 ## Examples of usage
 
-- [ssdeepviz.herokuapp.com](https://ssdeepviz.herokuapp.com)
+- [https://algoexplore.ca](https://algoexplore.ca)
 
 ## Running
 
