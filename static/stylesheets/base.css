@@ -47,7 +47,9 @@ rect {
   fill-opacity:0.3;
 }
 
-/* https://stackoverflow.com/a/53236027/1120453 */
-.disable-dbl-tap-zoom {
+/*
+  globally disable "double-tap zoom" as it makes the
+  mobile experience terrible (https://stackoverflow.com/a/53236027/1120453) */
+* {
   touch-action: manipulation;
 }
