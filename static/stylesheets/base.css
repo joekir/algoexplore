@@ -46,3 +46,8 @@ rect {
   stroke-width: 0.05vh;
   fill-opacity:0.3;
 }
+
+/* https://stackoverflow.com/a/53236027/1120453 */
+.disable-dbl-tap-zoom {
+  touch-action: manipulation;
+}

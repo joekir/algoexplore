@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" href="stylesheets/base.css">
+  <link rel="stylesheet" href="stylesheets/gh-fork-ribbon.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css" integrity="sha512-ZRv40llEogRmoWgZwnsqke3HNzJ0kiI0+pcMgiz2bxO6Ew1DVBtWjVn0qjrXdT3+u+pSN36gLgmJiiQ3cQtyzA==" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA==" crossorigin="anonymous" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.3.0/d3.min.js" integrity="sha512-wKo55+1oH5DGJ19ScVUHTtcZiqJuSnknSs8CgzzEm1lNftJRDXN/kWpF9Kx+vPam8HBeg53OxS0MYd0+Iz9cjQ==" crossorigin="anonymous"></script>
@@ -12,6 +13,7 @@
   <title>algoexplore</title>
 </head>
 <body>
+  <a class="github-fork-ribbon" href="https://github.com/joekir/algoexplore" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
   <section class="hero is-small is-light is-bold">
     <div class="hero-body">
       <div class="container">
@@ -20,7 +22,7 @@
       </div>
     </div>
   </section>
-  <section class="section">
+  <section class="section disable-dbl-tap-zoom">
     <div class="container pb-2">
       <label for="input" class="label">Input Text</label>
       <div class="field has-addons">
@@ -28,13 +30,13 @@
           <input id="input" class="input" value="The quick brown fox jumped over the lazy dog's back" placeholder="type something, then press 'initialize input'...">
         </div>
         <div class="control">
-          <a id="button1" class="button is-outlined is-info is-light" type="reset" onclick="init()">
+          <a id="button1" class="button is-outlined is-info is-light disable-dbl-tap-zoom" type="reset" onclick="init()">
             <span>Initialize Input</span>
             <span class="icon is-small">
               <i class="fas fa-power-off"></i>
             </span>
           </a>
-          <a id="button2" class="button is-outlined is-primary is-light" type="submit" onclick="stepHash()">
+          <a id="button2" class="button is-outlined is-primary is-light disable-dbl-tap-zoom" type="submit" onclick="stepHash()">
             <span>Step the Algorithm</span>
             <span class="icon is-small">
               <i class="fas fa-step-forward"></i>
