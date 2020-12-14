@@ -153,7 +153,7 @@ let input = function(hits, doubleHits, pos) {
 };
 
 let newHash = function(done){
-  inputText = document.getElementById("input").value;
+  inputText = $("#algo-input")[0].value;
   inputBytes = strToByteArr(inputText);
 
   $.ajax ({
@@ -188,7 +188,7 @@ let render = function(){
       fh.rolling_hash.x.toString(10)]);
 
   let sig = fh.block_size + ":" + fh.sig1 + ":" + fh.sig2;
-  document.getElementById("sig").value = sig;
+  document.getElementById("algo-output").value = sig;
 };
 
 let stepHash = function(){
