@@ -14,10 +14,10 @@
     <title>Algo Explore</title>
   </head>
   <body>
-    <a class="github-fork-ribbon" href="https://github.com/joekir/algoexplore" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+    <a class="github-fork-ribbon is-hidden-touch" href="https://github.com/joekir/algoexplore" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
     <nav class="navbar is-transparent is-light">
       <div class="navbar-brand">
-        <a href="/">
+        <a href="/" class="is-hidden-touch">
           <img src="assets/img/explore.png" width="100%" height="100%">
         </a>
         <div class="navbar-burger" data-target="navMenu">
@@ -53,8 +53,13 @@
     </nav>
     <section class="section">
       <div class="container pb-2">
+        <div class="tags has-addons is-right">
+          <span class="tag is-dark">algo</span>
+          <!-- TODO update this based on selected algo -->
+          <span class="tag is-info is-light">ssdeep</span>
+        </div>
         <label for="input" class="label">Input Text</label>
-        <div class="field has-addons">
+        <div class="field">
           <div class="control is-expanded">
             <input id="algo-input" class="input" type="text" value="The quick brown fox jumped over the lazy dog's back" placeholder="type something, then press 'initialize input'...">
           </div>
