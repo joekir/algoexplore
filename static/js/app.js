@@ -156,6 +156,8 @@ let newHash = function(done){
   inputText = $("#algo-input")[0].value;
   inputBytes = strToByteArr(inputText);
 
+  // Don't allow stepping until we've initialized
+  $("#button2").prop("disabled", true);
   $.ajax ({
         url: "/ctph/init",
         type: "POST",
@@ -167,6 +169,9 @@ let newHash = function(done){
     console.log("failed");
   }).done(function(data){
     done(JSON.parse(data))
+  }).always(function(){
+    // Renable step button
+    $("#button2").removeAttr("disabled");
   });
 }
 
@@ -197,7 +202,7 @@ let stepHash = function(){
   // Block while we wait for server response
   // Obviosuly this is a cosmetic block, but this isn't some security check
   // If someone wants to gun via the console, then they just get wrong ssdeep results :P
-  document.getElementById("button2").disabled = true;
+  $("#button2").prop("disabled", true);
 
   $.ajax ({
         url: "/ctph/step",
@@ -223,7 +228,7 @@ let stepHash = function(){
     }
   }).always(function(){
     // Renable the button
-    document.getElementById("button2").disabled = false;
+    $("#button2").removeAttr("disabled");
   });
 }
 
