@@ -152,28 +152,26 @@ let input = function(hits, doubleHits, pos) {
     };
 };
 
-let newHash = function(done){
+let newHash = function (done) {
   inputText = $("#algo-input")[0].value;
   inputBytes = strToByteArr(inputText);
 
-  // Don't allow stepping until we've initialized
-  $("#button2").prop("disabled", true);
-  $.ajax ({
-        url: "/ctph/init",
-        type: "POST",
-        data: JSON.stringify({"data_length":inputBytes.length}),
-        dataType: "json",
-        contentType: "application/json; charset=utf-8"
-  }).fail(function(a,b,c){
-    console.log(a,b,c);
-    console.log("failed");
-  }).done(function(data){
-    done(JSON.parse(data))
-  }).always(function(){
-    // Renable step button
-    $("#button2").removeAttr("disabled");
-  });
-}
+  $.ajax({
+    async: false,
+    contentType: "application/json; charset=utf-8",
+    data: JSON.stringify({ data_length: inputBytes.length }),
+    dataType: "json",
+    type: "POST",
+    url: "/ctph/init",
+  })
+    .fail(function (a, b, c) {
+      console.log(a, b, c);
+      console.log("failed");
+    })
+    .done(function (data) {
+      done(JSON.parse(data));
+    });
+};
 
 let render = function(){
   let dBits = bitArray([inputBytes[ctr]]);
@@ -196,41 +194,36 @@ let render = function(){
   document.getElementById("algo-output").value = sig;
 };
 
-let stepHash = function(){
+let stepHash = function () {
   ctr++;
 
-  // Block while we wait for server response
-  // Obviosuly this is a cosmetic block, but this isn't some security check
-  // If someone wants to gun via the console, then they just get wrong ssdeep results :P
-  $("#button2").prop("disabled", true);
+  $.ajax({
+    async: false,
+    contentType: "application/json; charset=utf-8",
+    data: JSON.stringify({ byte: inputBytes[ctr] }),
+    dataType: "json",
+    type: "POST",
+    url: "/ctph/step",
+  })
+    .fail(function (a, b, c) {
+      console.log(a, b, c);
+      console.log("failed");
+    })
+    .done(function (data) {
+      data = JSON.parse(data);
 
-  $.ajax ({
-        url: "/ctph/step",
-        type: "POST",
-        data: JSON.stringify({"byte":inputBytes[ctr]}),
-        dataType: "json",
-        contentType: "application/json; charset=utf-8"
-  }).fail(function(a,b,c){
-    console.log(a,b,c);
-    console.log("failed");
-  }).done(function(data){
-    data = JSON.parse(data);
-
-    if (null != data) {
-      fh = data // GLOBAL
-      if (fh.is_trigger1) {
-        hits.push(ctr);
+      if (null != data) {
+        fh = data; // GLOBAL
+        if (fh.is_trigger1) {
+          hits.push(ctr);
+        }
+        if (fh.is_trigger2) {
+          doubleHits.push(ctr);
+        }
+        render();
       }
-      if (fh.is_trigger2) {
-        doubleHits.push(ctr);
-      }
-      render();
-    }
-  }).always(function(){
-    // Renable the button
-    $("#button2").removeAttr("disabled");
-  });
-}
+    });
+};
 
 let init = function() {
 
