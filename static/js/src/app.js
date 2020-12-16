@@ -1,4 +1,4 @@
-//      
+// @flow
 
 if (typeof counterColour === 'undefined'){
   const counterColour = "chartreuse";

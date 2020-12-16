@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "flow-bin": "^0.140.0",
+    "flow-remove-types": "^2.140.0"
+  },
+  "scripts": {
+    "build": "flow-remove-types . -d ../",
+    "prepublish": "yarn run build"
+  }
+}
