@@ -13,6 +13,9 @@ if (typeof counterColour === 'undefined'){
          svgDoc = d3.selectAll("svg");
 
   let updateSizing = () => {
+    var inputText = $("#algo-input")[0].value;
+    var inputBytes = strToByteArr(inputText);
+
     if (typeof inputBytes !== 'undefined') {
       cubeWidth = xBuffer / inputBytes.length;
     }
@@ -154,28 +157,10 @@ if (typeof counterColour === 'undefined'){
     }
   };
 
-  let newHash = (done) => {
-    inputText = $("#algo-input")[0].value;
-    inputBytes = strToByteArr(inputText);
+  let render = (inputText, inputBytes) => {
+    var inputText = $("#algo-input")[0].value;
+    var inputBytes = strToByteArr(inputText);
 
-    $.ajax({
-      async: false,
-      contentType: "application/json; charset=utf-8",
-      data: JSON.stringify({ data_length: inputBytes.length }),
-      dataType: "json",
-      type: "POST",
-      url: "/ctph/init",
-    })
-      .fail(function (a, b, c) {
-        console.log(a, b, c);
-        console.log("failed");
-      })
-      .done(function (data) {
-        done(JSON.parse(data));
-      });
-  };
-
-  let render = () => {
     let dBits = bitArray([inputBytes[ctr]]);
     yBuffer = 0; 
 
@@ -201,7 +186,15 @@ if (typeof counterColour === 'undefined'){
     $("#algo-output").get(0).value = sig;
   };
 
-  function stepHash() {
+  function stepAlgo() {
+    let algoPath = localStorage.getItem("algoPathName");
+    if (algoPath == null) {
+      return;
+    }
+
+    var inputText = $("#algo-input")[0].value;
+    var inputBytes = strToByteArr(inputText);
+
     ctr++;
 
     $.ajax({
@@ -210,7 +203,7 @@ if (typeof counterColour === 'undefined'){
       data: JSON.stringify({ byte: inputBytes[ctr] }),
       dataType: "json",
       type: "POST",
-      url: "/ctph/step",
+      url: `${algoPath}/step`,
     })
       .fail(function (a, b, c) {
         console.log(a, b, c);
@@ -232,17 +225,40 @@ if (typeof counterColour === 'undefined'){
       });
   }
 
-  function init() {
-    // GLOBALS
-    newHash((data) => {
-      fh = data;
-      ctr = fh.index;
-      hits = [];
-      doubleHits = [];
+  function initAlgo() {
+    let algoPath = localStorage.getItem("algoPathName");
+    if (algoPath == null) {
+      return;
+    }
 
-      updateSizing();
-      render();
-    });
+    // stick with var throughout for these two, over let
+    // in case of redefine being an issue
+    var inputText = $("#algo-input")[0].value;
+    var inputBytes = strToByteArr(inputText);
+
+    $.ajax({
+      async: false,
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify({ data_length: inputBytes.length }),
+      dataType: "json",
+      type: "POST",
+      url: `${algoPath}/init`,
+    })
+      .fail(function (a, b, c) {
+        console.log(a, b, c);
+        console.log("failed");
+      })
+      .done(function (response) {
+        let parsed = JSON.parse(response);
+
+        // GLOBALS
+        fh = parsed;
+        ctr = fh.index;
+        hits = [];
+        doubleHits = [];
+        updateSizing();
+        render();
+      });
   }
 
   window.onresize = () => {
@@ -251,6 +267,6 @@ if (typeof counterColour === 'undefined'){
   };
 
   $(document).ready(() => {
-    init();
+    initAlgo();
   });
 }

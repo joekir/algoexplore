@@ -17,6 +17,7 @@ $(document).ready((e) => {
   $(".navbar-item").click((e) => {
     if (e.target.matches("[data-link]")) {
       e.preventDefault();
+      localStorage.setItem("algoPathName", e.target.pathname);
       fetchApp();
     }
   });
