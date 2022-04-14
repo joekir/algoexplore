@@ -1,12 +1,10 @@
 # algoexplore
 
-[![Build Status](https://travis-ci.org/joekir/algoexplore.svg?branch=main)](https://travis-ci.org/joekir/algoexplore)
 [![codecov](https://codecov.io/gh/joekir/algoexplore/branch/main/graph/badge.svg?token=ZOOIRH3QET)](https://codecov.io/gh/joekir/algoexplore)
 [![Go Report Card](https://goreportcard.com/badge/github.com/joekir/algoexplore)](https://goreportcard.com/report/github.com/joekir/algoexplore)
 
-![GoSec](https://github.com/joekir/algoexplore/workflows/GoSec/badge.svg)
-![CodeQL](https://github.com/joekir/algoexplore/workflows/CodeQL/badge.svg)
-
+[![CodeQL](https://github.com/joekir/algoexplore/workflows/CodeQL/badge.svg?event=push)](https://github.com/joekir/algoexplore/actions/workflows/codeql-analysis.yml)
+[![GoSec](https://github.com/joekir/algoexplore/workflows/GoSec/badge.svg?event=workflow_dispatch)](https://github.com/joekir/algoexplore/actions/workflows/main.yml)
 
 A web framework for visualizing bit-level algorithms.    
 The intent to help either your understanding or for teaching of algorithms to others
@@ -16,7 +14,7 @@ The intent to help either your understanding or for teaching of algorithms to ot
 You need to implement an "algo" in Golang that implements the interfaces in Algo.go     
 See internal/algos/ctph as an example implementation
 
-<TODO frontend intstructions>
+<TODO frontend instructions>
 
 ## Examples of usage
 
