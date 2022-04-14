@@ -1,15 +1,24 @@
+const ssdeepALGO = "/ctph";
+
 // Wires in the algorithm implementation selected to load
 // https://stackoverflow.com/a/39695533/1120453
 function fetchApp() {
+  if (null === localStorage.getItem("algoPathName")){
+    // set to DEFAULT
+    localStorage.setItem("algoPathName", ssdeepALGO)
+  }
+
   $.ajax({
     url: "fragments/app.html",
     type: "GET",
     cache: false,
     dataType: "html",
-
-    success: (htmlReturned) => {
-      $("#app").html(htmlReturned);
-    },
+  })
+  .fail(function (error) {
+    console.log("ajax failed: ", error);
+  })
+  .done(function (response) {
+    $("#app").html(response);
   });
 }
 
