@@ -115,9 +115,9 @@ func TestCtphHash_WithWebsiteDefault_MatchesExistingTool(t *testing.T) {
 	h := ctph.printSSDeep()
 	s := strings.Split(h, ":")
 
-	// NOTE: there is something wrong in this impl with the final charachter of
+	// NOTE: there is something wrong in this impl with the final character of
 	// 		 hash1 and hash2, so I'm not comparing that character
-	//		 I've tried backtracking throudh the c code ssdeep impl to v2.13
+	//		 I've tried backtracking through the c code ssdeep impl to v2.13
 	//		 It's DEFINITELY the implementation here, no that one that changed
 
 	expectedSSDeepHash1Prefix := "+0t8XXJFg0D8SmN" // mine returns 'n' should be 'v'
