@@ -1,5 +1,6 @@
 # algoexplore
 
+[![GoBuild](https://github.com/joekir/algoexplore/workflows/GoBuild/badge.svg?branch=main)](https://github.com/joekir/algoexplore/actions/workflows/go_build.yml)
 [![codecov](https://codecov.io/gh/joekir/algoexplore/branch/main/graph/badge.svg?token=ZOOIRH3QET)](https://codecov.io/gh/joekir/algoexplore)
 [![Go Report Card](https://goreportcard.com/badge/github.com/joekir/algoexplore)](https://goreportcard.com/report/github.com/joekir/algoexplore)
 
