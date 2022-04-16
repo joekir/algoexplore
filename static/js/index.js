@@ -2,7 +2,6 @@
 const supportedAlgos = {
   "/ctph": "ssdeep",
 };
-
 const algoPaths = Object.keys(supportedAlgos);
 
 // Wires in the algorithm implementation selected to load
