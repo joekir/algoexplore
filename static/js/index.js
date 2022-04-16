@@ -1,12 +1,19 @@
-const ssdeepALGO = "/ctph";
+// path and named for label
+const supportedAlgos = {
+  "/ctph": "ssdeep",
+};
+
+const algoPaths = Object.keys(supportedAlgos);
 
 // Wires in the algorithm implementation selected to load
 // https://stackoverflow.com/a/39695533/1120453
 function fetchApp() {
-  if (null === localStorage.getItem("algoPathName")){
+  let algo = () => {return localStorage.getItem("algoPathName")};
+  if (null === algo() || !algoPaths.includes(algo())){
     // set to DEFAULT
-    localStorage.setItem("algoPathName", ssdeepALGO)
+    localStorage.setItem("algoPathName", algoPaths[0]);
   }
+  $("#algo-name").text(supportedAlgos[algo()]);
 
   $.ajax({
     url: "fragments/app.html",

@@ -69,7 +69,7 @@
       <div class="tags has-addons is-right">
         <span class="tag is-dark">algo</span>
         <!-- TODO update this based on selected algo -->
-        <span class="tag is-info is-light">ssdeep</span>
+        <span class="tag is-info is-light" id="algo-name">ssdeep</span>
       </div>
       <label for="input" class="label">Input Text</label>
       <div class="field">
@@ -92,14 +92,16 @@
           </a>
         </div>
       </div>
+      <label for="app" class="label">Algorithm Visualization</label>
+      <div id="app"></div>
       <label for="algo-output" class="label">Output Text</label>
       <div class="field">
         <div class="control">
           <input id="algo-output" class="input normal-cursor" placeholder="algorithm output will appear here" disabled>
         </div>
       </div>
+    </div>
   </section>
-  <div id="app"></div>
   <script src="js/index.js"></script>
 </body>
 <footer class="footer is-hidden-touch">
