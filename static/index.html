@@ -72,21 +72,21 @@
       </div>
       <label for="input" class="label">Input Text</label>
       <div class="field">
-        <div class="control is-expanded">
-          <input id="algo-input" class="input" type="text" value="The quick brown fox jumped over the lazy dog's back"
+        <div class="control is-expanded inline-block-child">
+          <input id="algo-input" class="input input-min-width-50" type="text" value="The quick brown fox jumped over the lazy dog's back"
             placeholder="type something, then press 'initialize input'...">
         </div>
-        <div class="control">
-          <a id="button2" class="button is-outlined is-primary is-light" type="submit" onclick="stepAlgo()">
-            <span>Step the Algorithm</span>
-            <span class="icon is-small">
-              <i class="fas fa-step-forward"></i>
-            </span>
-          </a>
+        <div class="control inline-block-child">
           <a id="button1" class="button is-outlined is-info is-light" type="reset" onclick="initAlgo()">
             <span>Initialize Input</span>
             <span class="icon is-small">
               <i class="fas fa-power-off"></i>
+            </span>
+          </a>
+          <a id="button2" class="button is-outlined is-primary is-light" type="submit" onclick="stepAlgo()">
+            <span>Step the Algorithm</span>
+            <span class="icon is-small">
+              <i class="fas fa-step-forward"></i>
             </span>
           </a>
         </div>
