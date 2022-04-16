@@ -65,7 +65,7 @@
     </div>
   </nav>
   <section class="section">
-    <div class="container pb-2">
+    <div class="container pb-6">
       <div class="tags has-addons is-right">
         <span class="tag is-dark">algo</span>
         <span class="tag is-info is-light" id="algo-name">none</span>
@@ -77,20 +77,22 @@
             placeholder="type something, then press 'initialize input'...">
         </div>
         <div class="control">
-          <a id="button1" class="button is-outlined is-info is-light" type="reset" onclick="initAlgo()">
-            <span>Initialize Input</span>
-            <span class="icon is-small">
-              <i class="fas fa-power-off"></i>
-            </span>
-          </a>
           <a id="button2" class="button is-outlined is-primary is-light" type="submit" onclick="stepAlgo()">
             <span>Step the Algorithm</span>
             <span class="icon is-small">
               <i class="fas fa-step-forward"></i>
             </span>
           </a>
+          <a id="button1" class="button is-outlined is-info is-light" type="reset" onclick="initAlgo()">
+            <span>Initialize Input</span>
+            <span class="icon is-small">
+              <i class="fas fa-power-off"></i>
+            </span>
+          </a>
         </div>
       </div>
+    </div>
+    <div class="container">
       <label for="app" class="label">Algorithm Visualization</label>
       <div id="app"></div>
       <label for="algo-output" class="label">Output Text</label>
