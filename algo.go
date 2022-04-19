@@ -23,7 +23,6 @@ type AlgoPlugin interface {
 
 type AlgoFactory func() AlgoPlugin
 
-// RegisterAlgo <TODO>
 func Register(algoFactory AlgoFactory) {
 	algosMutex.Lock()
 	defer algosMutex.Unlock()
@@ -34,7 +33,6 @@ func Register(algoFactory AlgoFactory) {
 	algos[algoFactory().Name()] = algoFactory
 }
 
-// GetAlgo <TODO>
 func GetAlgo(name string) (AlgoPlugin, error) {
 	algosMutex.RLock()
 	defer algosMutex.RUnlock()
