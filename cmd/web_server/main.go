@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/joekir/algoexplore"
@@ -40,34 +41,36 @@ func main() {
 	router.HandleFunc("/{algo}/init", Init).Methods("POST")
 	router.HandleFunc("/{algo}/step", StepAlgo).Methods("POST")
 	workingDir, err := os.Getwd()
+
+	flag.Parse()
 	if err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
 	staticDir := path.Join(workingDir, "/static/")
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir)))
 
-	log.Printf("Listening on %s\n", listeningPort)
-	log.Fatal(http.ListenAndServe(":"+listeningPort, router))
+	glog.Infof("Listening on %s\n", listeningPort)
+	glog.Fatal(http.ListenAndServe(":"+listeningPort, router))
 }
 
 type hashReq struct {
 	DataLength int `json:"data_length"`
 }
 
-func validateAlgo(vars map[string]string) *algoexplore.AlgoInfo {
+func validateAlgo(vars map[string]string) *algoexplore.AlgoPlugin {
 	algoName := vars["algo"]
 
-	algoInfo, err := algoexplore.GetAlgo(algoName)
+	algo, err := algoexplore.GetAlgo(algoName)
 	if err != nil {
-		log.Fatal("valid algorithm not found")
+		glog.Fatal("valid algorithm not found")
 		return nil
 	}
 
-	return &algoInfo
+	return &algo
 }
 
 func Init(w http.ResponseWriter, r *http.Request) {
-	algoInfo := validateAlgo(mux.Vars(r))
+	algo := validateAlgo(mux.Vars(r))
 
 	var h hashReq
 	var body io.Reader
@@ -86,7 +89,7 @@ func Init(w http.ResponseWriter, r *http.Request) {
 	session, _ := cookieStore.Get(r, sessionCookieName)
 
 	if !session.IsNew {
-		log.Println("Deleting old cookie")
+		glog.Infoln("Deleting old cookie")
 		session.Options.MaxAge = -1
 		if err := session.Save(r, w); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -101,18 +104,17 @@ func Init(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	algo := algoInfo.New()
-
 	// https://golang.org/doc/effective_go.html#type_switch
 	var state string
-	switch algo := algo.(type) {
+	switch algo := (*algo).(type) {
 	case *ctph.Ctph:
 		algo.Init(h.DataLength)
 		state = algo.SerializeState()
+		glog.Infoln("registering ctph algorithm")
 	default:
-		log.Fatal("Unable to concretize algo type")
+		glog.Fatal("Unable to concretize algo type")
 	}
-	log.Printf("state: %#v\n", state)
+	glog.Infof("state: %#v\n", state)
 
 	session.Values[algoState] = state
 	if err := session.Save(r, w); err != nil {
@@ -157,26 +159,25 @@ func StepAlgo(w http.ResponseWriter, r *http.Request) {
 		// You could argue that 0x0 is a legitimate state, however in ascii it is NUL
 		// Hence it's unlikely to be a legit input, however this is a default input if the
 		// Client doesn't have a valid one, so we should return
-		log.Printf("no data provided")
+		glog.Errorln("no data provided")
 		http.Error(w, "No data provided, no state to update", http.StatusNoContent)
 		return
 	}
 
 	state := session.Values[algoState].(string)
-	algo := algoInfo.New()
 
 	// https://golang.org/doc/effective_go.html#type_switch
-	switch algo := algo.(type) {
+	switch algo := (*algoInfo).(type) {
 	case *ctph.Ctph:
 		if err := algo.DeserializeState(state); err != nil {
-			log.Fatalf("Failed to deserialize state: %s", err.Error())
+			glog.Fatalf("Failed to deserialize state: %s", err.Error())
 		}
 		algo.Step(s.Data)
 		state = algo.SerializeState()
 	default:
-		log.Fatal("Unable to concretize algo type")
+		glog.Fatal("Unable to concretize algo type")
 	}
-	log.Printf("state: %#v\n", state)
+	glog.Infof("state: %#v\n", state)
 
 	session.Values[algoState] = state
 	err = session.Save(r, w)

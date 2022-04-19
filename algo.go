@@ -9,53 +9,40 @@ import (
 )
 
 var (
-	algos      = make(map[string]AlgoInfo)
+	algos      = map[string]AlgoFactory{}
 	algosMutex sync.RWMutex
 )
 
-type AlgoInfo struct {
-	Name string
-	New  func() Algo
-}
-
-type Algo interface {
-	Algo() AlgoInfo
-}
-
-// AlgoWorker this allows you to leverage the ptr-receiver to update your algorithm
-type AlgoWorker interface {
+type AlgoPlugin interface {
+	Name() string
 	Init(inputLen int)
 	Step(d byte)
 	SerializeState() string
 	DeserializeState(state string) error
 }
 
+type AlgoFactory func() AlgoPlugin
+
 // RegisterAlgo <TODO>
-func RegisterAlgo(instance Algo) {
-	algo := instance.Algo()
-
-	if val := algo.New(); val == nil {
-		panic("AlgoInfo.New must return a non-nil module instance")
-	}
-
+func Register(algoFactory AlgoFactory) {
 	algosMutex.Lock()
 	defer algosMutex.Unlock()
 
-	if _, ok := algos[string(algo.Name)]; ok {
-		panic(fmt.Sprintf("algo already registered: %s", algo.Name))
+	if _, ok := algos[algoFactory().Name()]; ok {
+		panic(fmt.Sprintf("algo already registered: %s", algoFactory().Name()))
 	}
-	algos[string(algo.Name)] = algo
+	algos[algoFactory().Name()] = algoFactory
 }
 
 // GetAlgo <TODO>
-func GetAlgo(name string) (AlgoInfo, error) {
+func GetAlgo(name string) (AlgoPlugin, error) {
 	algosMutex.RLock()
 	defer algosMutex.RUnlock()
 	m, ok := algos[name]
 	if !ok {
-		return AlgoInfo{}, fmt.Errorf("algo not registered: %s", name)
+		return nil, fmt.Errorf("algo not registered: %s", name)
 	}
-	return m, nil
+	return m(), nil
 }
 
 // Algos returns the names of all registered algorithms

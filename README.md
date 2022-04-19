@@ -27,6 +27,13 @@ See internal/algos/ctph as an example implementation
 $ COOKIE_SESSION_KEY=0x`openssl rand -hex 8` go run cmd/web_server/main.go
 ```
 
+## Running with debug logging
+
+_via [glog](https://pkg.go.dev/github.com/golang/glog)_
+```
+$ COOKIE_SESSION_KEY=0x`openssl rand -hex 8` go run cmd/web_server/main.go --logtostderr=1
+```
+
 ## Running Tests 
 
 ```

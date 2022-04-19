@@ -15,16 +15,11 @@ import (
 )
 
 func init() {
-	log.Println("registering ctph algorithm")
-	algoexplore.RegisterAlgo(Ctph{})
+	algoexplore.Register(func() algoexplore.AlgoPlugin { return &Ctph{} })
 }
 
-// Algo - see algoexplore.AlgoInfo struct
-func (Ctph) Algo() algoexplore.AlgoInfo {
-	return algoexplore.AlgoInfo{
-		Name: "ctph",
-		New:  func() algoexplore.Algo { return new(Ctph) },
-	}
+func (ctph *Ctph) Name() string {
+	return "ctph"
 }
 
 // Init - see algoexplore.AlgoWorker interface
