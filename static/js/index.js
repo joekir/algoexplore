@@ -7,7 +7,7 @@ const algoPaths = Object.keys(supportedAlgos);
 // Wires in the algorithm implementation selected to load
 // https://stackoverflow.com/a/39695533/1120453
 function fetchApp() {
-  let algo = () => {return localStorage.getItem("algoPathName")};
+  var algo = () => {return localStorage.getItem("algoPathName")};
   if (null === algo() || !algoPaths.includes(algo())){
     // set to DEFAULT
     localStorage.setItem("algoPathName", algoPaths[0]);

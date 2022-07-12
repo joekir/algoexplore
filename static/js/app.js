@@ -12,7 +12,7 @@ if (typeof counterColour === 'undefined'){
         yBuffer = 0,
          svgDoc = d3.selectAll("svg");
 
-  let updateSizing = () => {
+  var updateSizing = () => {
     var inputText = $("#algo-input")[0].value;
     var inputBytes = strToByteArr(inputText);
 
@@ -21,7 +21,7 @@ if (typeof counterColour === 'undefined'){
     }
   };
 
-  let strToByteArr = (str) => {
+  var strToByteArr = (str) => {
     var arr = [];
     for (var i = 0; i < str.length; i++) {
       arr.push(str.charCodeAt(i));
@@ -30,11 +30,11 @@ if (typeof counterColour === 'undefined'){
     return arr;
   }
 
-  let bitArray = (arr) => {
-    let output = []; // there is no bit array :(
-    for (let i = 0; i < arr.length; i++) {
-      for (let j = 0; j < 32; j++) {
-        let mask = 1 << j;
+  var bitArray = (arr) => {
+    var output = []; // there is no bit array :(
+    for (var i = 0; i < arr.length; i++) {
+      for (var j = 0; j < 32; j++) {
+        var mask = 1 << j;
         if ((arr[i] & mask) == mask) {
           output.push(1);
         } else {
@@ -46,7 +46,7 @@ if (typeof counterColour === 'undefined'){
     return output;
   }
 
-  let appendArray = (title, backingArray, highlight) => {
+  var appendArray = (title, backingArray, highlight) => {
     var items = svgDoc.selectAll("g");
 
     items.data([title])
@@ -78,7 +78,7 @@ if (typeof counterColour === 'undefined'){
       .attr("dominant-baseline", "middle");
   }
 
-  let appendText = (titles, numbers) => {
+  var appendText = (titles, numbers) => {
     var items = svgDoc.selectAll("g");
 
     items.data(titles)
@@ -113,7 +113,7 @@ if (typeof counterColour === 'undefined'){
       .attr("dominant-baseline", "middle");
   }
 
-  let appendLegend = (titles, colours) => {
+  var appendLegend = (titles, colours) => {
     var items = svgDoc.selectAll("g");
 
     items.data(colours)
@@ -135,10 +135,10 @@ if (typeof counterColour === 'undefined'){
       .attr("y", yBuffer + 0.60 * cubeWidth);
   }
 
-  let noop = (d, i) => null;
+  var noop = (d, i) => null;
 
-  let input = (hits, doubleHits, pos) => function (d, i) {
-    let ctr = 0;
+  var input = (hits, doubleHits, pos) => function (d, i) {
+    var ctr = 0;
 
     if (hits.includes(i)) {
       ctr += 1;
@@ -157,11 +157,11 @@ if (typeof counterColour === 'undefined'){
     }
   };
 
-  let render = (inputText, inputBytes) => {
+  var render = (inputText, inputBytes) => {
     var inputText = $("#algo-input")[0].value;
     var inputBytes = strToByteArr(inputText);
 
-    let dBits = bitArray([inputBytes[ctr]]);
+    var dBits = bitArray([inputBytes[ctr]]);
     yBuffer = 0; 
 
     svgDoc.html(null);
@@ -182,12 +182,12 @@ if (typeof counterColour === 'undefined'){
       fh.rolling_hash.y.toString(10),
       fh.rolling_hash.x.toString(10)]);
 
-    let sig = fh.block_size + ":" + fh.sig1 + ":" + fh.sig2;
+    var sig = fh.block_size + ":" + fh.sig1 + ":" + fh.sig2;
     $("#algo-output").get(0).value = sig;
   };
 
   function stepAlgo() {
-    let algoPath = localStorage.getItem("algoPathName");
+    var algoPath = localStorage.getItem("algoPathName");
     if (algoPath == null) {
       return;
     }
@@ -226,12 +226,12 @@ if (typeof counterColour === 'undefined'){
   }
 
   function initAlgo() {
-    let algoPath = localStorage.getItem("algoPathName");
+    var algoPath = localStorage.getItem("algoPathName");
     if (algoPath == null) {
       return;
     }
 
-    // stick with var throughout for these two, over let
+    // stick with var throughout for these two, over var
     // in case of redefine being an issue
     var inputText = $("#algo-input")[0].value;
     var inputBytes = strToByteArr(inputText);
@@ -249,7 +249,7 @@ if (typeof counterColour === 'undefined'){
         console.log("failed");
       })
       .done(function (response) {
-        let parsed = JSON.parse(response);
+        var parsed = JSON.parse(response);
 
         // GLOBALS
         fh = parsed;
