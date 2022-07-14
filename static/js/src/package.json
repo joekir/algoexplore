@@ -1,10 +1,23 @@
 {
-  "devDependencies": {
-    "flow-bin": "^0.140.0",
-    "flow-remove-types": "^2.140.0"
-  },
+  "name": "algoexplore-web",
+  "license": "MIT",
   "scripts": {
-    "build": "flow-remove-types . -d ../",
-    "prepublish": "yarn run build"
+    "build": "yarn run webpack --config webpack.config.js --progress",
+    "check": "tsc --noEmit",
+    "clean": "rm -rf dist/*",
+    "webpack": "node --max_old_space_size=4096 node_modules/webpack/bin/webpack.js"
+  },
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "devDependencies": {
+    "@types/d3": "^7.4.0",
+    "@types/jquery": "^3.5.14",
+    "jquery": "^3.6.0",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.73.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "d3": "^6.7.0"
   }
 }

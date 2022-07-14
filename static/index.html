@@ -77,13 +77,13 @@
             placeholder="type something, then press 'initialize input'...">
         </div>
         <div class="control inline-block-child">
-          <a id="button1" class="button is-outlined is-info is-light" type="reset" onclick="initAlgo()">
+          <a id="button1" class="button is-outlined is-info is-light" type="reset" onclick="App.initAlgo()">
             <span>Initialize Input</span>
             <span class="icon is-small">
               <i class="fas fa-power-off"></i>
             </span>
           </a>
-          <a id="button2" class="button is-outlined is-primary is-light" type="submit" onclick="stepAlgo()">
+          <a id="button2" class="button is-outlined is-primary is-light" type="submit" onclick="App.stepAlgo()">
             <span>Step the Algorithm</span>
             <span class="icon is-small">
               <i class="fas fa-step-forward"></i>
@@ -103,8 +103,8 @@
       </div>
     </div>
   </section>
-  <script src="js/index.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/src/dist/index.js"></script>
+  <script src="js/src/dist/app.js"></script>
 </body>
 <footer class="footer is-hidden-touch">
   <div class="content has-text-centered">
