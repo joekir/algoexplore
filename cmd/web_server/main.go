@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
@@ -49,8 +50,14 @@ func main() {
 	staticDir := path.Join(workingDir, "/static/")
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(staticDir)))
 
+	server := &http.Server{
+		Addr:              ":" + listeningPort,
+		Handler:           router,
+		ReadHeaderTimeout: 3 * time.Second,
+	}
+
 	glog.Infof("Listening on %s\n", listeningPort)
-	glog.Fatal(http.ListenAndServe(":"+listeningPort, router))
+	glog.Fatal(server.ListenAndServe())
 }
 
 type hashReq struct {
@@ -73,8 +80,7 @@ func Init(w http.ResponseWriter, r *http.Request) {
 	algo := validateAlgo(mux.Vars(r))
 
 	var h hashReq
-	var body io.Reader
-	body = r.Body
+	var body io.Reader = r.Body
 	if err := algoexplore.StrictUnmarshalJSON(&body, &h); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
