@@ -34,6 +34,13 @@ _via [glog](https://pkg.go.dev/github.com/golang/glog)_
 $ COOKIE_SESSION_KEY=0x`openssl rand -hex 8` go run cmd/web_server/main.go --logtostderr=1
 ```
 
+## Deploying to fly.io
+
+```
+1. flyctl secrets set COOKIE_SESSION_KEY=0x`openssl rand -hex 8`
+2. fly launch
+```
+
 ## Running Tests 
 
 ```
